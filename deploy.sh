@@ -1,8 +1,8 @@
 ## deploy lanmbda function
 
 echo "[deploy start]"
-FUNCTION_NAME_1=linebot_AutoKintai
-FUNCTION_NAME_2=linebot_AutoKintai_batch
+FUNCTION_NAME_1=linebot_HoloNotice_online
+FUNCTION_NAME_2=xxxxxxxxxxxxx
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 
@@ -14,15 +14,15 @@ rm -f ${SCRIPT_DIR}/.deploy/lambda.zip
 zip -rq ${SCRIPT_DIR}/.deploy/lambda.zip ./*
 
 
-# echo "[deploy]"
-# cd ${SCRIPT_DIR}/.deploy
-# result=`aws lambda update-function-code --function-name ${FUNCTION_NAME_1} --zip-file fileb://lambda.zip`
-# echo "deploy1 ${result}"
+echo "[deploy]"
+cd ${SCRIPT_DIR}/.deploy
+result=`aws lambda update-function-code --function-name ${FUNCTION_NAME_1} --zip-file fileb://lambda.zip`
+echo "deploy1 ${result}"
 
 # result=`aws lambda update-function-code --function-name ${FUNCTION_NAME_2} --zip-file fileb://lambda.zip`
 # echo "deploy2 ${result}"
 
-# echo "[deploy finish]"
+echo "[deploy finish]"
 
 
 # echo "[archive module]"

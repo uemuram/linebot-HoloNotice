@@ -1,37 +1,40 @@
-// import { validateSignature } from "@line/bot-sdk";
+import { validateSignature } from "@line/bot-sdk";
 // import { askGemini } from './geminiUtil.mjs';
 // import { registKintai, roundDownTo15Min, roundUpTo15Min } from './chronusUtil.mjs';
 // import { putItemToDB, deleteItemFromDB, getItemFromDB } from './dynamoDbUtil.mjs';
-// import { replyMessage, pushMessage, showLoadingAnimation } from './lineUtil.mjs';
+import { replyMessage, pushMessage, showLoadingAnimation } from './util/lineUtil.mjs';
 // import fs from 'fs/promises';
 
-// const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
-// const LINE_MY_USER_ID = process.env.LINE_MY_USER_ID;
+const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
+const LINE_MY_USER_ID = process.env.LINE_MY_USER_ID;
 
 export async function execOnline(req) {
 
-  // // 署名の検証（LINEからの接続か）
-  // const signature = req.headers["x-line-signature"];
-  // const bool = validateSignature(req.body, LINE_CHANNEL_SECRET, signature);
-  // if (!bool) throw new Error("invalid signature");
+  // 署名の検証（LINEからの接続か）
+  const signature = req.headers["x-line-signature"];
+  const bool = validateSignature(req.body, LINE_CHANNEL_SECRET, signature);
+  if (!bool) throw new Error("invalid signature");
 
-  // // LINEからの受け渡し情報の取得
-  // const body = JSON.parse(req.body);
-  // console.log(JSON.stringify(body));
-  // if (!body.events || body.events.length === 0) {
-  //   return;
-  // }
-  // const replyToken = body.events[0].replyToken;
-  // if (!replyToken || typeof replyToken === 'undefined') {
-  //   return;
-  // }
+  // LINEからの受け渡し情報の取得
+  const body = JSON.parse(req.body);
+  console.log(JSON.stringify(body));
+  if (!body.events || body.events.length === 0) {
+    return;
+  }
+  const replyToken = body.events[0].replyToken;
+  if (!replyToken || typeof replyToken === 'undefined') {
+    return;
+  }
 
-  // // 自身(管理者)のユーザIDのみリクエストを受け付ける(個人用Botのため)
-  // const userId = body.events[0].source.userId;
-  // if (userId != LINE_MY_USER_ID) {
-  //   console.log('管理者以外からのアクセスのため終了');
-  //   return;
-  // }
+  // 自身(管理者)のユーザIDのみリクエストを受け付ける(個人用Botのため)
+  const userId = body.events[0].source.userId;
+  if (userId != LINE_MY_USER_ID) {
+    console.log('管理者以外からのアクセスのため終了');
+    return;
+  }
+
+  // テスト
+  await replyMessage(replyToken, "リプライです");
 
   // // とりあえずローディングする
   // await showLoadingAnimation(LINE_MY_USER_ID);
