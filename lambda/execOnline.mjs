@@ -3,6 +3,7 @@ import { validateSignature } from "@line/bot-sdk";
 // import { registKintai, roundDownTo15Min, roundUpTo15Min } from './chronusUtil.mjs';
 // import { putItemToDB, deleteItemFromDB, getItemFromDB } from './dynamoDbUtil.mjs';
 import { replyMessage, pushMessage, showLoadingAnimation } from './util/lineUtil.mjs';
+import { conversationManager } from './util/conversationManager.mjs';
 // import fs from 'fs/promises';
 
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
@@ -10,7 +11,11 @@ const LINE_MY_USER_ID = process.env.LINE_MY_USER_ID;
 
 const doMain = async (replyToken, userId) => {
   // とりあえずローディングする
-  await showLoadingAnimation(userId);
+  showLoadingAnimation(userId);
+
+  // 会話用のマネージャーを生成
+  const convo = new conversationManager(userId);
+  convo.test();
 
   // テスト
   await replyMessage(replyToken, "リプライです");
