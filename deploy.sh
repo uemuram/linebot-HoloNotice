@@ -1,7 +1,7 @@
 ## deploy lanmbda function
 
 echo "[deploy start]"
-FUNCTION_NAME_1=linebot_HoloNotice_online
+FUNCTION_NAME_1=lb_HoloNotice_online
 FUNCTION_NAME_2=xxxxxxxxxxxxx
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
