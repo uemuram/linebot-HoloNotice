@@ -7,7 +7,7 @@ const lineClient = new messagingApi.MessagingApiClient({
   channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
 });
 
-export async function replyMessage(replyToken, msg) {
+export const replyMessage = async (replyToken, msg) => {
   console.log(`リプライ : ${msg}`);
   await lineClient.replyMessage({
     replyToken: replyToken,
@@ -15,7 +15,7 @@ export async function replyMessage(replyToken, msg) {
   });
 }
 
-export async function pushMessage(userId, msg) {
+export const pushMessage = async (userId, msg) => {
   console.log(`プッシュ : ${msg}`);
   if (LINE_SKIP_PUSH == '1') {
     console.log(`節約のためプッシュをスキップ`);
@@ -27,7 +27,7 @@ export async function pushMessage(userId, msg) {
   });
 }
 
-export async function showLoadingAnimation(userId) {
+export const showLoadingAnimation = async (userId) => {
   console.log(`ローディングアニメーション表示`);
   await lineClient.showLoadingAnimation({
     chatId: userId,

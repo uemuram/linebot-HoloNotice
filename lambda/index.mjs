@@ -7,11 +7,11 @@ export const handler = async (req) => {
 
   if (MODE == "batch") {
     console.log("処理開始(バッチモード)");
-    const result = await execBatch();
+    await execBatch();
     return;
   } else {
     console.log("処理開始(オンラインモード)");
-    const result = await execOnline(req);
+    await execOnline(req);
     return { statusCode: 200 };
   }
 

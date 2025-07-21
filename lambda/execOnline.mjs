@@ -8,7 +8,15 @@ import { replyMessage, pushMessage, showLoadingAnimation } from './util/lineUtil
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const LINE_MY_USER_ID = process.env.LINE_MY_USER_ID;
 
-export async function execOnline(req) {
+const doMain = async (replyToken, userId) => {
+  // とりあえずローディングする
+  await showLoadingAnimation(userId);
+
+  // テスト
+  await replyMessage(replyToken, "リプライです");
+}
+
+export const execOnline = async (req) => {
 
   // 署名の検証（LINEからの接続か）
   const signature = req.headers["x-line-signature"];
@@ -26,15 +34,23 @@ export async function execOnline(req) {
     return;
   }
 
-  // 自身(管理者)のユーザIDのみリクエストを受け付ける(個人用Botのため)
+  // TODO 最終的には消す / 自身(管理者)のユーザIDのみリクエストを受け付ける(個人用Botのため)
   const userId = body.events[0].source.userId;
   if (userId != LINE_MY_USER_ID) {
     console.log('管理者以外からのアクセスのため終了');
     return;
   }
 
+  // メイン処理
+  try {
+    await doMain(replyToken, userId);
+  } catch (err) {
+    console.log(err.message)
+    await replyMessage(replyToken, "エラーが発生しました。お手数ですが時間をおいてもう一度お願いします");
+  }
+
   // テスト
-  await replyMessage(replyToken, "リプライです");
+  //await replyMessage(replyToken, "リプライです");
 
   // // とりあえずローディングする
   // await showLoadingAnimation(LINE_MY_USER_ID);
@@ -225,109 +241,109 @@ export async function execOnline(req) {
   // }
 }
 
-// オブジェクトのタイプ判定
-// { date: "20250703", startTime: "0900", endTime: "1915" } -> 1
-// { date: "20250703", startTime: "", endTime: null } -> 2
-// null、{} -> 3
-function getDateTimeFillType(input) {
-  // null または 空文字 の場合
-  if (input === null || input === '' || typeof input !== 'object') return 3;
+// // オブジェクトのタイプ判定
+// // { date: "20250703", startTime: "0900", endTime: "1915" } -> 1
+// // { date: "20250703", startTime: "", endTime: null } -> 2
+// // null、{} -> 3
+// function getDateTimeFillType(input) {
+//   // null または 空文字 の場合
+//   if (input === null || input === '' || typeof input !== 'object') return 3;
 
-  // 空オブジェクトチェック
-  if (Object.keys(input).length === 0) return 3;
+//   // 空オブジェクトチェック
+//   if (Object.keys(input).length === 0) return 3;
 
-  // 各項目の存在確認（null/undefined/空文字を含む）
-  const keys = ['date', 'startTime', 'endTime'];
-  const filledCount = keys.filter(k => input[k] !== undefined && input[k] !== null && input[k] !== '').length;
+//   // 各項目の存在確認（null/undefined/空文字を含む）
+//   const keys = ['date', 'startTime', 'endTime'];
+//   const filledCount = keys.filter(k => input[k] !== undefined && input[k] !== null && input[k] !== '').length;
 
-  if (filledCount === 3) return 1;
-  if (filledCount >= 1) return 2;
-  return 3;
-}
+//   if (filledCount === 3) return 1;
+//   if (filledCount >= 1) return 2;
+//   return 3;
+// }
 
-// 共通：日本時間の Date オブジェクトを取得
-function getNowJST() {
-  const now = new Date();
-  return new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-}
+// // 共通：日本時間の Date オブジェクトを取得
+// function getNowJST() {
+//   const now = new Date();
+//   return new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+// }
 
-// 今日の日付を yyyy/m/d 形式で返す（ゼロ埋めなし）
-function getTodayString() {
-  const nowJST = getNowJST();
-  const year = nowJST.getFullYear();
-  const month = nowJST.getMonth() + 1; // 0始まりなので+1
-  const day = nowJST.getDate();
-  return `${year}/${month}/${day}`;
-}
+// // 今日の日付を yyyy/m/d 形式で返す（ゼロ埋めなし）
+// function getTodayString() {
+//   const nowJST = getNowJST();
+//   const year = nowJST.getFullYear();
+//   const month = nowJST.getMonth() + 1; // 0始まりなので+1
+//   const day = nowJST.getDate();
+//   return `${year}/${month}/${day}`;
+// }
 
-// 今日の日付を YYYYMMDD 形式で返す
-function getTodayCompactString() {
-  const nowJST = getNowJST();
-  const year = nowJST.getFullYear();
-  const month = String(nowJST.getMonth() + 1).padStart(2, '0');
-  const day = String(nowJST.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
-}
+// // 今日の日付を YYYYMMDD 形式で返す
+// function getTodayCompactString() {
+//   const nowJST = getNowJST();
+//   const year = nowJST.getFullYear();
+//   const month = String(nowJST.getMonth() + 1).padStart(2, '0');
+//   const day = String(nowJST.getDate()).padStart(2, '0');
+//   return `${year}${month}${day}`;
+// }
 
-// 現在時刻を HHMM 形式（日本時間）で返す
-function getCurrentTimeHHMM() {
-  const nowJST = getNowJST();
-  const hour = String(nowJST.getHours()).padStart(2, '0');
-  const minutes = String(nowJST.getMinutes()).padStart(2, '0');
-  return `${hour}${minutes}`;
-}
+// // 現在時刻を HHMM 形式（日本時間）で返す
+// function getCurrentTimeHHMM() {
+//   const nowJST = getNowJST();
+//   const hour = String(nowJST.getHours()).padStart(2, '0');
+//   const minutes = String(nowJST.getMinutes()).padStart(2, '0');
+//   return `${hour}${minutes}`;
+// }
 
-// テンプレートファイルを読み込む
-async function renderTemplate(filePath, values) {
-  try {
-    // テンプレートファイル読み込み
-    const template = await fs.readFile(filePath, 'utf-8');
+// // テンプレートファイルを読み込む
+// async function renderTemplate(filePath, values) {
+//   try {
+//     // テンプレートファイル読み込み
+//     const template = await fs.readFile(filePath, 'utf-8');
 
-    // テンプレート文字列を関数として評価
-    const compiled = new Function(...Object.keys(values), `return \`${template}\`;`);
+//     // テンプレート文字列を関数として評価
+//     const compiled = new Function(...Object.keys(values), `return \`${template}\`;`);
 
-    // 関数を実行して変数を埋め込む
-    return compiled(...Object.values(values));
-  } catch (err) {
-    console.error('テンプレート処理エラー:', err);
-    throw err;
-  }
-}
+//     // 関数を実行して変数を埋め込む
+//     return compiled(...Object.values(values));
+//   } catch (err) {
+//     console.error('テンプレート処理エラー:', err);
+//     throw err;
+//   }
+// }
 
-// 欠落項目に応じたメッセージを返す。欠落がなければstatus=true、欠落があれば欠落項目を埋めるメッセージを返す
-function validateWorkTime(date, startTime, endTime) {
-  const missingFields = [];
+// // 欠落項目に応じたメッセージを返す。欠落がなければstatus=true、欠落があれば欠落項目を埋めるメッセージを返す
+// function validateWorkTime(date, startTime, endTime) {
+//   const missingFields = [];
 
-  if (!date) missingFields.push("勤務日");
-  if (!startTime) missingFields.push("開始時刻");
-  if (!endTime) missingFields.push("終了時刻");
+//   if (!date) missingFields.push("勤務日");
+//   if (!startTime) missingFields.push("開始時刻");
+//   if (!endTime) missingFields.push("終了時刻");
 
-  if (missingFields.length === 0) {
-    return {
-      status: true,
-      msg: ""
-    };
-  } else {
-    return {
-      status: false,
-      msg: `${missingFields.join("、")}を教えてください`
-    };
-  }
-}
+//   if (missingFields.length === 0) {
+//     return {
+//       status: true,
+//       msg: ""
+//     };
+//   } else {
+//     return {
+//       status: false,
+//       msg: `${missingFields.join("、")}を教えてください`
+//     };
+//   }
+// }
 
-// DBからの取得結果とAIの判定結果をマージ(AI側を優先)
-function mergeDateTime(replyFromAI, preRegistDateTime) {
-  const fields = ["date", "startTime", "endTime"];
-  const result = {};
+// // DBからの取得結果とAIの判定結果をマージ(AI側を優先)
+// function mergeDateTime(replyFromAI, preRegistDateTime) {
+//   const fields = ["date", "startTime", "endTime"];
+//   const result = {};
 
-  fields.forEach((key) => {
-    const replyVal = replyFromAI?.[key] ?? "";
-    const preVal = preRegistDateTime?.[key] ?? "";
+//   fields.forEach((key) => {
+//     const replyVal = replyFromAI?.[key] ?? "";
+//     const preVal = preRegistDateTime?.[key] ?? "";
 
-    result[key] = replyVal !== "" ? replyVal
-      : preVal !== "" ? preVal
-        : "";
-  });
+//     result[key] = replyVal !== "" ? replyVal
+//       : preVal !== "" ? preVal
+//         : "";
+//   });
 
-  return result;
-}
+//   return result;
+// }
