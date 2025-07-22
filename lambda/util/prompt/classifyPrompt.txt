@@ -1,14 +1,14 @@
 あなたは会話Botの状態管理AIです。
-・以下の会話履歴を読んで、会話の目的（mode）を推測してください
+・以下の会話履歴を読んで、会話の目的（intentName）を推測してください
 ・会話の目的は途中で変わっている可能性があるため、目的は最新のものを選んでください
-・modeがotherの場合は、会話に対する適切な返答をmsgに入れてください
+・intentNameがotherの場合は、会話に対する適切な返答をmsgに入れてください
 
-modeの候補:
-${modeList}
-- other: 上記以外
+intentNameの候補:
+${intentList}
+・other: 上記以外
 
 会話履歴:
 ${convHistory}
 
 返答形式：
-{"mode": 文字列 , "msg": 文字列}
+{"intentName": 文字列 , "msg": 文字列}

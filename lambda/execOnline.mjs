@@ -4,24 +4,40 @@ import { validateSignature } from "@line/bot-sdk";
 // import { putItemToDB, deleteItemFromDB, getItemFromDB } from './dynamoDbUtil.mjs';
 import { replyMessage, pushMessage, showLoadingAnimation } from './util/lineUtil.mjs';
 import { conversationManager } from './util/conversationManager.mjs';
-// import fs from 'fs/promises';
 
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const LINE_MY_USER_ID = process.env.LINE_MY_USER_ID;
 
-const doMain = async (replyToken, userId) => {
+const doMain = async (replyToken, userId, messageText) => {
   // とりあえずローディングする
   showLoadingAnimation(userId);
 
+  // 目的を定義
+  const intentList = [
+    {
+      intentName: "register_oshi",
+      description: "推しを登録する"
+    },
+    {
+      intentName: "search_schedule",
+      description: "配信スケジュールを探す"
+    },
+  ];
+
   // 会話用のマネージャーを生成 & 初期化
-  const convo = new conversationManager(userId, 'lb_HoloNotice_conversation');
+  const convo = new conversationManager(userId, 'lb_HoloNotice_conversation', intentList, 10);
   await convo.init();
 
-  convo.addContent('user', 'さようなら');
-  //convo.classify();
+  convo.addUserContent(messageText);
+  const classifyResult = await convo.classify();
 
-  // 会話履歴を保存する
-  convo.save();
+  if (classifyResult.intentName == 'other') {
+    await replyMessage(replyToken, classifyResult.msg);
+    convo.addAIContent(classifyResult.msg);
+    // 会話履歴を保存する
+    await convo.save();
+  }
+
 
   // TODO 会話を呼び出す
 
@@ -59,9 +75,11 @@ export const execOnline = async (req) => {
     return;
   }
 
+  const messageText = body.events[0].message.text;
+
   // メイン処理
   try {
-    await doMain(replyToken, userId);
+    await doMain(replyToken, userId, messageText);
   } catch (err) {
     console.log(err.message)
     await replyMessage(replyToken, "エラーが発生しました。お手数ですが時間をおいてもう一度お願いします");
