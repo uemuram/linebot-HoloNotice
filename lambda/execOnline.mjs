@@ -13,9 +13,22 @@ const doMain = async (replyToken, userId) => {
   // とりあえずローディングする
   showLoadingAnimation(userId);
 
-  // 会話用のマネージャーを生成
-  const convo = new conversationManager(userId);
-  convo.test();
+  // 会話用のマネージャーを生成 & 初期化
+  const convo = new conversationManager(userId, 'lb_HoloNotice_conversation');
+  await convo.init();
+
+  convo.addContent('user', 'さようなら');
+  //convo.classify();
+
+  // 会話履歴を保存する
+  convo.save();
+
+  // TODO 会話を呼び出す
+
+  // TODO 分岐 会話終了であればそのまま返す
+  // TODO 会話継続であればモードによって異なる処理を呼び出す
+
+
 
   // テスト
   await replyMessage(replyToken, "リプライです");
