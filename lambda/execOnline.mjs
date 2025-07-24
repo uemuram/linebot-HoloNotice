@@ -16,11 +16,15 @@ const doMain = async (replyToken, userId, messageText) => {
   const intentList = [
     {
       intentName: "register_oshi",
-      description: "推しを登録する"
+      description: "推しを登録する",
+      preAction: async () => console.log("register_oshi_pre"),
+      postAction: async () => console.log("register_oshi_post"),
     },
     {
       intentName: "search_schedule",
-      description: "配信スケジュールを探す"
+      description: "配信スケジュールを探す",
+      preAction: async () => console.log("search_schedule_pre"),
+      postAction: async () => console.log("search_schedule_post"),
     },
   ];
 
@@ -28,16 +32,22 @@ const doMain = async (replyToken, userId, messageText) => {
   const convo = new conversationManager(userId, 'lb_HoloNotice_conversation', intentList, 10);
   await convo.init();
 
+  // 会話履歴から目的を推定
   convo.addUserContent(messageText);
   const classifyResult = await convo.classify();
 
+  // 目的が「その他」だった場合(想定する目的に当てはまらなかった場合)
   if (classifyResult.intentName == 'other') {
+    // 応答をそのまま返却
     await replyMessage(replyToken, classifyResult.msg);
+    // 会話履歴を保存して終了
     convo.addAIContent(classifyResult.msg);
-    // 会話履歴を保存する
     await convo.save();
+    return;
   }
 
+  // 目的に応じたアクションを実行する
+  await convo.action();
 
   // TODO 会話を呼び出す
 
@@ -81,7 +91,7 @@ export const execOnline = async (req) => {
   try {
     await doMain(replyToken, userId, messageText);
   } catch (err) {
-    console.log(err.message)
+    console.error('エラー詳細:', err);
     await replyMessage(replyToken, "エラーが発生しました。お手数ですが時間をおいてもう一度お願いします");
   }
 

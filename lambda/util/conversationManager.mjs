@@ -10,30 +10,39 @@ export class conversationManager {
 
     // ------------ コンストラクタ ------------
     constructor(userId, convTableName, intentList, convHistoryMaxLength) {
+        // ユーザID
         this.userId = userId;
+        // 会話履歴が保存されるテーブル名
         this.convTableName = convTableName;
+        // 目的の一覧
         this.intentList = intentList;
+        // DBに保存される会話の最大数
         this.convHistoryMaxLength = convHistoryMaxLength;
+
+        // 会話履歴
         this.convHistory = [];
+        // 現在の会話の目的
+        this.currentIntent = {};
     }
 
     // ------------ パブリックメソッド ------------
     // 初期化処理
     async init() {
-        // 会話履歴を取得
+        // 会話履歴をDBから取得
         this.convHistory = await getItemFromDB(this.convTableName, 'userId', this.userId) || [];
     }
 
-    // 会話を履歴に追加する
+    // 会話を履歴に追加する(ユーザ側)
     addUserContent(content) {
         this.convHistory.push({ role: 'ユーザ', content: content });
     }
 
+    // 会話を履歴に追加する(AI側)
     addAIContent(content) {
         this.convHistory.push({ role: 'あなた', content: content });
     }
 
-    // 会話を分類する
+    // 会話を分類して現状の目的(currentIntent)を確定させる
     async classify() {
         // プロンプトを生成
         const promptPath = path.join(__dirname, 'prompt', 'classifyPrompt.txt');
@@ -45,10 +54,24 @@ export class conversationManager {
         // 生成AIに問い合わせる
         const aiResultStr = await askGemini(promptStr);
         console.log(aiResultStr);
-        return this.#convertAIResult(aiResultStr);
+        // 結果を保存 & 返却
+        const aiResult = this.#convertAIResult(aiResultStr);
+        this.currentIntent = this.intentList.find(intent => intent.intentName === aiResult.intentName) || {};
+
+        return aiResult;
     }
 
-    // 状態を保存する
+    // 目的に対応したアクションを実行する
+    async action() {
+        // 目的が未設定の場合はエラーとする
+        if (!this.currentIntent) throw new Error('目的未設定');
+        // TODO 目的がintentListに入っていない場合はエラー
+
+        await this.currentIntent.preAction();
+        await this.currentIntent.postAction();
+    }
+
+    // 状態をDBに保存する
     async save() {
         // 会話の最大長を超えないように古いものから削る
         if (this.convHistory.length > this.convHistoryMaxLength) {

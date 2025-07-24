@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// TODO 複数キー対応
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Geminiにリクエストを投げる
